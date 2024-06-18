@@ -12,7 +12,7 @@ enum QueriedMacroError: Error, CustomStringConvertible {
         case .invalidLocation:
             "Invalid macro location. Macro must must be used before an instance var."
         case .invalidVarType:
-            "Invalid var type. Macro should only be used on array vars"
+            "Invalid var type. Macro should only be used on array vars."
         }
     }
 }
@@ -29,6 +29,7 @@ public struct QueriedMacro: PeerMacro {
         else {
             throw QueriedMacroError.invalidLocation
         }
+
         guard let arrayTypeSyntax = varDeclBinding.typeAnnotation?.type.as(ArrayTypeSyntax.self) else {
             throw QueriedMacroError.invalidVarType
         }
