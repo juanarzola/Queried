@@ -1,6 +1,6 @@
 # Queried (Experimental)
 
-`@Queried` is a SwiftData macro applied to an array property of an object that generates a function that auto-updates it with the latest values of a `FetchDescriptor`. This is intended to be used to populate arrays in non-view objects.
+`@Queried` is a SwiftData macro applied to an array property of a `class` or `actor` that generates a function that auto-updates it with the latest values of a `FetchDescriptor`. This is intended to be used to populate arrays in non-view objects.
 
 I intend to use this as a proof of concept of how non-View queries could be implemented. 
 
