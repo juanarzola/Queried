@@ -1,3 +1,5 @@
+#if canImport(QueriedMacros)
+
 import SwiftSyntax
 import SwiftSyntaxBuilder
 import SwiftSyntaxMacros
@@ -6,13 +8,11 @@ import XCTest
 import MacroTesting
 
 // Macro implementations build for the host, so the corresponding module is not available when cross-compiling. Cross-compiled tests may still make use of the macro itself in end-to-end tests.
-#if canImport(QueryUpdatesMacros)
+
 import QueriedMacros
-#endif
 
 final class QueriedTests: XCTestCase {
     func testValidUsage() throws {
-#if canImport(QueryUpdatesMacros)
         assertMacro(["Queried": QueriedMacro.self], record: false) {
             """
             @Model
@@ -82,13 +82,9 @@ final class QueriedTests: XCTestCase {
             }
             """#
         }
-#else
-        throw XCTSkip("macros are only supported when running tests for the host platform")
-#endif
     }
 
     func testIncorrectType() throws {
-#if canImport(QueryUpdatesMacros)
         assertMacro(["Queried": QueriedMacro.self]) {
             """
             @Model
@@ -107,18 +103,14 @@ final class QueriedTests: XCTestCase {
             struct MyViewModel {
                 @Queried
                 ┬───────
-                ╰─ 🛑 Invalid var type. Macro should only be used on array vars
+                ╰─ 🛑 Invalid var type. Macro should only be used on array vars.
                 var items: Item
             }
             """
         }
-#else
-        throw XCTSkip("macros are only supported when running tests for the host platform")
-#endif
     }
 
     func testIncorrectPeer() throws {
-#if canImport(QueryUpdatesMacros)
         assertMacro(["Queried": QueriedMacro.self]) {
             """
             @Model
@@ -142,13 +134,9 @@ final class QueriedTests: XCTestCase {
             }
             """
         }
-#else
-        throw XCTSkip("macros are only supported when running tests for the host platform")
-#endif
     }
 
     func testIncorrectLet() throws {
-#if canImport(QueryUpdatesMacros)
         assertMacro(["Queried": QueriedMacro.self]) {
             """
             @Model
@@ -172,9 +160,7 @@ final class QueriedTests: XCTestCase {
             }
             """
         }
-#else
-        throw XCTSkip("macros are only supported when running tests for the host platform")
-#endif
     }
-
 }
+
+#endif
