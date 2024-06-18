@@ -6,7 +6,7 @@ I intend to use this as a proof of concept of how non-View queries could be impl
 
 It uses an internal `SwiftData` notification that the `@Query` macro uses to update views. These may break in future `SwiftData` updates, so use this at your own risk!
 
-Example:
+Example (from [QueriedSample](https://github.com/juanarzola/QueriedSample)):
 
 ```swift
 import SwiftUI
