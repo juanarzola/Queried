@@ -4,7 +4,7 @@
 
 I intend to use this as a proof of concept of how non-View queries could be implemented. 
 
-It uses internal SwiftData notifications also used by SwiftData's @Query macro. These may break in future SwiftData updates, so use this at your own risk!
+It uses an internal `SwiftData` notification that the `@Query` macro uses to update views. These may break in future SwiftData updates, so use this at your own risk!
 
 Example:
 
