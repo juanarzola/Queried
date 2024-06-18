@@ -1,10 +1,10 @@
 # Queried (Experimental)
 
-`@Queried` is a SwiftData macro applied to an array property of an object that generates a function that auto-updates it with the latest values of a FetchDescriptor. This is intended to be used to populate arrays in non-view objects.
+`@Queried` is a SwiftData macro applied to an array property of an object that generates a function that auto-updates it with the latest values of a `FetchDescriptor`. This is intended to be used to populate arrays in non-view objects.
 
 I intend to use this as a proof of concept of how non-View queries could be implemented. 
 
-It uses an internal `SwiftData` notification that the `@Query` macro uses to update views. These may break in future SwiftData updates, so use this at your own risk!
+It uses an internal `SwiftData` notification that the `@Query` macro uses to update views. These may break in future `SwiftData` updates, so use this at your own risk!
 
 Example:
 
@@ -23,34 +23,34 @@ final class Item {
 }
 
 @MainActor @Observable
-class ContentViewModel {
+class ContentController {
     @Queried
     var items: [Item] = []
 
-    // call this in the view to keep ContentViewModel up-to-date
+    // call this in a `.task()` in the view to keep ContentController up-to-date
     func updates(in container: ModelContainer) async {
         do {
             for try await currItems in items(
                 FetchDescriptor(predicate: .true),
                 in: container.mainContext
             ) {
+               print("\(#function): Got \(currItems.count) items")
             }
         } catch let error {
-            print("Things broke: \(error.localizedDescription)")
+            print("\(#function): Error: \(error.localizedDescription)")
         }
     }
 }
 
 @MainActor
 struct ContentView: View {
-    // @Query private var items: [Item]
     @Environment(\.modelContext) private var modelContext
-    @State private var viewModel: ContentViewModel = ContentViewModel()
+    @State private var controller = ContentController()
 
     var body: some View {
         NavigationSplitView {
             List {
-                ForEach(viewModel.items) { item in
+                ForEach(controller.items) { item in
                     NavigationLink {
                         Text("Item at \(item.timestamp, format: Date.FormatStyle(date: .numeric, time: .standard))")
                     } label: {
@@ -78,7 +78,7 @@ struct ContentView: View {
             Text("Select an item")
         }
         .task {
-            await viewModel.updates(in: modelContext.container)
+            await controller.updates(in: modelContext.container)
         }
 
     }
@@ -94,7 +94,7 @@ struct ContentView: View {
     private func deleteItems(offsets: IndexSet) {
         withAnimation {
             for index in offsets {
-                modelContext.delete(viewModel.items[index])
+                modelContext.delete(controller.items[index])
             }
         }
     }
