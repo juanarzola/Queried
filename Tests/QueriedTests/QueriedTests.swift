@@ -12,13 +12,13 @@ import MacroTesting
 import QueriedMacros
 
 final class QueriedTests: XCTestCase {
-    func testValidUsage() throws {
+    func testValidClassParent() throws {
         assertMacro(["Queried": QueriedMacro.self], record: false) {
             """
             @Model
             class Item {
             }
-            struct MyViewModel {
+            class MyViewModel {
                 @Queried
                 var items: [Item]
             }
@@ -28,7 +28,7 @@ final class QueriedTests: XCTestCase {
             @Model
             class Item {
             }
-            struct MyViewModel {
+            class MyViewModel {
                 var items: [Item]
 
                 func items<T: Item>(_ descriptor: FetchDescriptor<T>, in modelContext: ModelContext) -> AsyncThrowingStream<[T], Error> {
@@ -84,13 +84,116 @@ final class QueriedTests: XCTestCase {
         }
     }
 
-    func testIncorrectType() throws {
+    func testValidActorParent() throws {
+        assertMacro(["Queried": QueriedMacro.self], record: false) {
+            """
+            @Model
+            class Item {
+            }
+            actor MyActor {
+                @Queried
+                var items: [Item]
+            }
+            """
+        } expansion: {
+            #"""
+            @Model
+            class Item {
+            }
+            actor MyActor {
+                var items: [Item]
+
+                func items<T: Item>(_ descriptor: FetchDescriptor<T>, in modelContext: ModelContext) -> AsyncThrowingStream<[T], Error> {
+                    AsyncThrowingStream<[T], Error> { continuation in
+                        let center = NotificationCenter.default
+                        let notifications = center.notifications(named: Notification.Name("NSObjectsChangedInManagingContextNotification"), object: modelContext).filter { notification in
+                            guard let modelContext = notification.object as? ModelContext else {
+                                return false
+                            }
+                            let deleted = modelContext.deletedModelsArray
+                            let updated = modelContext.changedModelsArray
+                            let inserted = modelContext.insertedModelsArray
+                            let allUpdates = deleted + updated + inserted
+                            let names = ["\(T.self)"]
+                            let isRelevantUpdate = allUpdates.contains(where: { object in
+                                names.contains {
+                                                    object.persistentModelID.entityName == $0
+                                                }
+                            })
+                            return isRelevantUpdate
+                        } .map { _ in
+                        }
+
+                        func refetch() throws -> [T] {
+                            try modelContext.fetch(descriptor)
+                        }
+                        do {
+                            let firstItems = try refetch()
+                            self.items = firstItems
+                            continuation.yield(firstItems)
+                        } catch let error {
+                            self.items = []
+                            continuation.finish(throwing: error)
+                            return
+                        }
+                        Task {
+                            do {
+                                for await _ in notifications {
+                                    let items = try refetch()
+                                    self.items = items
+                                    continuation.yield(items)
+                                }
+                                continuation.finish()
+                            } catch let error {
+                                self.items = []
+                                continuation.finish(throwing: error)
+                            }
+                        }
+                    }
+                }
+            }
+            """#
+        }
+    }
+
+
+    func testInvalidStructParent() throws {
+    #if swift(>=6.0.0)
         assertMacro(["Queried": QueriedMacro.self]) {
             """
             @Model
             class Item {
             }
             struct MyViewModel {
+                @Queried
+                var items: [Item]
+            }
+            """
+        } diagnostics: {
+            """
+            @Model
+            class Item {
+            }
+            struct MyViewModel {
+                @Queried
+                ┬───────
+                ╰─ 🛑 Invalid macro location. Macro must must be used in a `class` or an `actor`.
+                var items: [Item]
+            }
+            """
+        }
+    #else
+        throw XCTSkip("Cannot verify parent of macro expansion in Swift 5.0")
+    #endif
+    }
+
+    func testInvalidType() throws {
+        assertMacro(["Queried": QueriedMacro.self]) {
+            """
+            @Model
+            class Item {
+            }
+            class MyViewModel {
                 @Queried
                 var items: Item
             }
@@ -100,7 +203,7 @@ final class QueriedTests: XCTestCase {
             @Model
             class Item {
             }
-            struct MyViewModel {
+            class MyViewModel {
                 @Queried
                 ┬───────
                 ╰─ 🛑 Invalid var type. Macro should only be used on array vars.
@@ -110,13 +213,13 @@ final class QueriedTests: XCTestCase {
         }
     }
 
-    func testIncorrectPeer() throws {
+    func testInvalidPeer() throws {
         assertMacro(["Queried": QueriedMacro.self]) {
             """
             @Model
             class Item {
             }
-            struct MyViewModel {
+            class MyViewModel {
                 @Queried
                 func hello() {}
             }
@@ -126,7 +229,7 @@ final class QueriedTests: XCTestCase {
             @Model
             class Item {
             }
-            struct MyViewModel {
+            class MyViewModel {
                 @Queried
                 ┬───────
                 ╰─ 🛑 Invalid macro location. Macro must must be used before an instance var.
@@ -136,13 +239,13 @@ final class QueriedTests: XCTestCase {
         }
     }
 
-    func testIncorrectLet() throws {
+    func testInvalidLet() throws {
         assertMacro(["Queried": QueriedMacro.self]) {
             """
             @Model
             class Item {
             }
-            struct MyViewModel {
+            class MyViewModel {
                 @Queried
                 let items: [Item]
             }
@@ -152,7 +255,7 @@ final class QueriedTests: XCTestCase {
             @Model
             class Item {
             }
-            struct MyViewModel {
+            class MyViewModel {
                 @Queried
                 ┬───────
                 ╰─ 🛑 Invalid macro location. Macro must must be used before an instance var.
@@ -161,6 +264,7 @@ final class QueriedTests: XCTestCase {
             """
         }
     }
+
 }
 
 #endif

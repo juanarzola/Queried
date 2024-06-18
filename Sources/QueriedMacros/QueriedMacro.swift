@@ -5,12 +5,16 @@ import SwiftSyntaxMacros
 
 enum QueriedMacroError: Error, CustomStringConvertible {
     case invalidLocation
+    case invalidParentLocation
     case invalidVarType
 
     var description: String {
         switch self {
         case .invalidLocation:
             "Invalid macro location. Macro must must be used before an instance var."
+        // currently not used because we need MacroExpansionContext's `lexicalContext` in Swift 6.0 to implement this.
+        case .invalidParentLocation:
+            "Invalid macro location. Macro must must be used in a `class` or an `actor`."
         case .invalidVarType:
             "Invalid var type. Macro should only be used on array vars."
         }
