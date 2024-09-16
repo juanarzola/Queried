@@ -31,7 +31,7 @@ final class QueriedTests: XCTestCase {
             class MyViewModel {
                 var items: [Item]
 
-                func items<T: Item>(_ descriptor: FetchDescriptor<T>, in modelContext: ModelContext) -> AsyncThrowingStream<[T], Error> {
+                func itemsAsyncStream<T: Item>(_ descriptor: FetchDescriptor<T>, in modelContext: ModelContext) -> AsyncThrowingStream<[T], Error> {
                     AsyncThrowingStream<[T], Error> { continuation in
                         let center = NotificationCenter.default
                         let notifications = center.notifications(named: Notification.Name("NSObjectsChangedInManagingContextNotification"), object: modelContext).filter { notification in
@@ -103,7 +103,7 @@ final class QueriedTests: XCTestCase {
             actor MyActor {
                 var items: [Item]
 
-                func items<T: Item>(_ descriptor: FetchDescriptor<T>, in modelContext: ModelContext) -> AsyncThrowingStream<[T], Error> {
+                func itemsAsyncStream<T: Item>(_ descriptor: FetchDescriptor<T>, in modelContext: ModelContext) -> AsyncThrowingStream<[T], Error> {
                     AsyncThrowingStream<[T], Error> { continuation in
                         let center = NotificationCenter.default
                         let notifications = center.notifications(named: Notification.Name("NSObjectsChangedInManagingContextNotification"), object: modelContext).filter { notification in

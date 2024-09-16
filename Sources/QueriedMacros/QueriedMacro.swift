@@ -41,7 +41,7 @@ public struct QueriedMacro: PeerMacro {
         let elementType = arrayTypeSyntax.element
         return [
             """
-            func \(name)<T: \(elementType)>(_ descriptor: FetchDescriptor<T>, in modelContext: ModelContext) -> AsyncThrowingStream<[T], Error> {
+            func \(name)AsyncStream<T: \(elementType)>(_ descriptor: FetchDescriptor<T>, in modelContext: ModelContext) -> AsyncThrowingStream<[T], Error> {
                 AsyncThrowingStream<[T], Error> { continuation in
                     let center = NotificationCenter.default
                     let notifications = center.notifications(named: Notification.Name("NSObjectsChangedInManagingContextNotification"), object: modelContext).filter { notification in

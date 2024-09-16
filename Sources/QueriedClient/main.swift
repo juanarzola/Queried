@@ -9,7 +9,7 @@ class ContentViewModel {
 
     func updates(in container: ModelContainer) async {
         do {
-            for try await currItems in items(
+            for try await currItems in itemsAsyncStream(
                 FetchDescriptor(predicate: .true),
                 in: container.mainContext
             ) {
