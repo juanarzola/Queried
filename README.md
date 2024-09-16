@@ -30,7 +30,7 @@ class ContentController {
     // call this in a `.task()` in the view to keep ContentController up-to-date
     func updates(in container: ModelContainer) async {
         do {
-            for try await currItems in items(
+            for try await currItems in itemsAsyncStream(
                 FetchDescriptor(predicate: .true),
                 in: container.mainContext
             ) {
