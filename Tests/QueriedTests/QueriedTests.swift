@@ -34,7 +34,13 @@ final class QueriedTests: XCTestCase {
                 func itemsAsyncStream<T: Item>(_ descriptor: FetchDescriptor<T>, in modelContext: ModelContext) -> AsyncThrowingStream<[T], Error> {
                     AsyncThrowingStream<[T], Error> { continuation in
                         let center = NotificationCenter.default
-                        let notifications = center.notifications(named: Notification.Name("NSObjectsChangedInManagingContextNotification"), object: modelContext).filter { notification in
+                        let notificationName: Notification.Name
+                        if #available (iOS 18, *) {
+                            notificationName = ModelContext.willSave
+                        } else {
+                            notificationName = Notification.Name("NSObjectsChangedInManagingContextNotification")
+                        }
+                        let notifications = center.notifications(named: notificationName, object: modelContext).filter { notification in
                             guard let modelContext = notification.object as? ModelContext else {
                                 return false
                             }
@@ -106,7 +112,13 @@ final class QueriedTests: XCTestCase {
                 func itemsAsyncStream<T: Item>(_ descriptor: FetchDescriptor<T>, in modelContext: ModelContext) -> AsyncThrowingStream<[T], Error> {
                     AsyncThrowingStream<[T], Error> { continuation in
                         let center = NotificationCenter.default
-                        let notifications = center.notifications(named: Notification.Name("NSObjectsChangedInManagingContextNotification"), object: modelContext).filter { notification in
+                        let notificationName: Notification.Name
+                        if #available (iOS 18, *) {
+                            notificationName = ModelContext.willSave
+                        } else {
+                            notificationName = Notification.Name("NSObjectsChangedInManagingContextNotification")
+                        }
+                        let notifications = center.notifications(named: notificationName, object: modelContext).filter { notification in
                             guard let modelContext = notification.object as? ModelContext else {
                                 return false
                             }
