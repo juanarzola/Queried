@@ -1,0 +1,33 @@
+{
+  "originHash" : "19847a69be68f748cc535f8b06d7bb9db80065d16634f29da974d7c3b00509c8",
+  "pins" : [
+    {
+      "identity" : "swift-macro-testing",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/pointfreeco/swift-macro-testing.git",
+      "state" : {
+        "revision" : "851c8b6bde2000d8051dc9aca1efee04dcc37411",
+        "version" : "0.4.1"
+      }
+    },
+    {
+      "identity" : "swift-snapshot-testing",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/pointfreeco/swift-snapshot-testing",
+      "state" : {
+        "revision" : "8ddd519780452729c6634ad6bd0d2595938e9ea3",
+        "version" : "1.16.1"
+      }
+    },
+    {
+      "identity" : "swift-syntax",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/apple/swift-syntax.git",
+      "state" : {
+        "revision" : "64889f0c732f210a935a0ad7cda38f77f876262d",
+        "version" : "509.1.1"
+      }
+    }
+  ],
+  "version" : 3
+}
