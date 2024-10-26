@@ -18,14 +18,22 @@ extension ModelContainer {
     public func mainContextUpdates<T: PersistentModel>(
         relevantTo fetchDescriptorType: FetchDescriptor<T>.Type
     ) -> AsyncStream<Void> {
+        mainContext.updates(relevantTo: fetchDescriptorType)
+    }
+}
+
+
+extension ModelContext {
+    public func updates<T: PersistentModel>(
+        relevantTo fetchDescriptorType: FetchDescriptor<T>.Type
+    ) -> AsyncStream<Void> {
         return AsyncStream<Void> { continuation in
-            let mainContext = mainContext
             let publisher = {
                 // willSave only started working in iOS 18
                 if #available(iOS 18, *) {
-                    NotificationCenter.default.publisher(for: ModelContext.willSave, object: mainContext)
+                    NotificationCenter.default.publisher(for: ModelContext.willSave, object: self)
                 } else {
-                    NotificationCenter.default.publisher(for: Notification.Name("NSObjectsChangedInManagingContextNotification"), object: mainContext)
+                    NotificationCenter.default.publisher(for: Notification.Name("NSObjectsChangedInManagingContextNotification"), object: self)
                 }
             }()
             let cancellable = publisher.sink { _ in
@@ -46,7 +54,7 @@ extension ModelContainer {
                     continuation.yield()
                 }
             }
-            continuation.onTermination = { a in
+            continuation.onTermination = { continuation in
                 cancellable.cancel()
             }
         }

@@ -9,11 +9,11 @@ class ContentViewModel {
 
     func updates(in container: ModelContainer) async {
         do {
-            for try await currItems in itemsAsyncStream(
+            for try await _ in itemsAsyncStream(
                 FetchDescriptor(predicate: .true),
                 in: container.mainContext
             ) {
-                print("\(#function): Got \(currItems.count) items.")
+                print("\(#function): Got \(items.count) items.")
             }
         } catch let error {
             print("\(#function): Error: \(error.localizedDescription)")

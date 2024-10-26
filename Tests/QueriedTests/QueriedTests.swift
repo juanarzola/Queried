@@ -24,58 +24,33 @@ final class QueriedTests: XCTestCase {
             }
             """
         } expansion: {
-            #"""
+            """
             @Model
             class Item {
             }
             class MyViewModel {
                 var items: [Item]
 
-                func itemsAsyncStream<T: Item>(_ descriptor: FetchDescriptor<T>, in modelContext: ModelContext) -> AsyncThrowingStream<[T], Error> {
-                    AsyncThrowingStream<[T], Error> { continuation in
-                        let center = NotificationCenter.default
-                        let notificationName: Notification.Name
-                        if #available (iOS 18, *) {
-                            notificationName = ModelContext.willSave
-                        } else {
-                            notificationName = Notification.Name("NSObjectsChangedInManagingContextNotification")
-                        }
-                        let notifications = center.notifications(named: notificationName, object: modelContext).filter { notification in
-                            guard let modelContext = notification.object as? ModelContext else {
-                                return false
-                            }
-                            let deleted = modelContext.deletedModelsArray
-                            let updated = modelContext.changedModelsArray
-                            let inserted = modelContext.insertedModelsArray
-                            let allUpdates = deleted + updated + inserted
-                            let names = ["\(T.self)"]
-                            let isRelevantUpdate = allUpdates.contains(where: { object in
-                                names.contains {
-                                                    object.persistentModelID.entityName == $0
-                                                }
-                            })
-                            return isRelevantUpdate
-                        } .map { _ in
-                        }
-
+                func itemsAsyncStream<T: Item>(_ descriptor: FetchDescriptor<T>, in modelContext: ModelContext) -> AsyncThrowingStream<Void, Error> {
+                    AsyncThrowingStream<Void, Error> { continuation in
                         func refetch() throws -> [T] {
                             try modelContext.fetch(descriptor)
                         }
                         do {
                             let firstItems = try refetch()
                             self.items = firstItems
-                            continuation.yield(firstItems)
+                            continuation.yield()
                         } catch let error {
                             self.items = []
                             continuation.finish(throwing: error)
                             return
                         }
-                        Task {
+                        let task = Task {
                             do {
-                                for await _ in notifications {
+                                for await _ in modelContext.updates(relevantTo: type(of: descriptor)) {
                                     let items = try refetch()
                                     self.items = items
-                                    continuation.yield(items)
+                                    continuation.yield()
                                 }
                                 continuation.finish()
                             } catch let error {
@@ -83,10 +58,13 @@ final class QueriedTests: XCTestCase {
                                 continuation.finish(throwing: error)
                             }
                         }
+                        continuation.onTermination = { _ in
+                            task.cancel()
+                        }
                     }
                 }
             }
-            """#
+            """
         }
     }
 
@@ -102,58 +80,33 @@ final class QueriedTests: XCTestCase {
             }
             """
         } expansion: {
-            #"""
+            """
             @Model
             class Item {
             }
             actor MyActor {
                 var items: [Item]
 
-                func itemsAsyncStream<T: Item>(_ descriptor: FetchDescriptor<T>, in modelContext: ModelContext) -> AsyncThrowingStream<[T], Error> {
-                    AsyncThrowingStream<[T], Error> { continuation in
-                        let center = NotificationCenter.default
-                        let notificationName: Notification.Name
-                        if #available (iOS 18, *) {
-                            notificationName = ModelContext.willSave
-                        } else {
-                            notificationName = Notification.Name("NSObjectsChangedInManagingContextNotification")
-                        }
-                        let notifications = center.notifications(named: notificationName, object: modelContext).filter { notification in
-                            guard let modelContext = notification.object as? ModelContext else {
-                                return false
-                            }
-                            let deleted = modelContext.deletedModelsArray
-                            let updated = modelContext.changedModelsArray
-                            let inserted = modelContext.insertedModelsArray
-                            let allUpdates = deleted + updated + inserted
-                            let names = ["\(T.self)"]
-                            let isRelevantUpdate = allUpdates.contains(where: { object in
-                                names.contains {
-                                                    object.persistentModelID.entityName == $0
-                                                }
-                            })
-                            return isRelevantUpdate
-                        } .map { _ in
-                        }
-
+                func itemsAsyncStream<T: Item>(_ descriptor: FetchDescriptor<T>, in modelContext: ModelContext) -> AsyncThrowingStream<Void, Error> {
+                    AsyncThrowingStream<Void, Error> { continuation in
                         func refetch() throws -> [T] {
                             try modelContext.fetch(descriptor)
                         }
                         do {
                             let firstItems = try refetch()
                             self.items = firstItems
-                            continuation.yield(firstItems)
+                            continuation.yield()
                         } catch let error {
                             self.items = []
                             continuation.finish(throwing: error)
                             return
                         }
-                        Task {
+                        let task = Task {
                             do {
-                                for await _ in notifications {
+                                for await _ in modelContext.updates(relevantTo: type(of: descriptor)) {
                                     let items = try refetch()
                                     self.items = items
-                                    continuation.yield(items)
+                                    continuation.yield()
                                 }
                                 continuation.finish()
                             } catch let error {
@@ -161,10 +114,13 @@ final class QueriedTests: XCTestCase {
                                 continuation.finish(throwing: error)
                             }
                         }
+                        continuation.onTermination = { _ in
+                            task.cancel()
+                        }
                     }
                 }
             }
-            """#
+            """
         }
     }
 
