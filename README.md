@@ -11,7 +11,7 @@ Example (from [QueriedSample](https://github.com/juanarzola/QueriedSample)):
 ## Observing from background ModelContext
 
 Because Queried relies on a container's mainContext updating, it won't automatically update
-when another ModelContext updates the container. To work around this, manuall call 
+when another ModelContext updates the container. To work around this, manually call 
 `ModelContainer.postForcedMainContextUpdate` to update all @Queried queries 
 after other ModelContexts finish their writes.
 
