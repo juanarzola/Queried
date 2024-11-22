@@ -53,6 +53,7 @@ extension ModelContext {
             } receiveValue: { (notification) in
                 if notification.name == ModelContainer.mainContextForcedUpdate {
                     continuation.yield()
+                    return
                 }
                 guard let modelContext = notification.object as? ModelContext else {
                     return
