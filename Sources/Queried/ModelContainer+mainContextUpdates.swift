@@ -1,5 +1,5 @@
 //
-//  ModelContextAdditions.swift
+//  ModelContainer+mainContextUpdates.swift
 //
 //
 //  Created by Juan Arzola on 7/27/24.
@@ -20,15 +20,27 @@ extension ModelContainer {
     ) -> AsyncStream<Void> {
         mainContext.updates(relevantTo: fetchDescriptorType)
     }
-}
 
+    public func postForcedMainContextUpdate() {
+        NotificationCenter.default.post(
+            name: ModelContainer.mainContextForcedUpdate,
+            object: self
+        )
+    }
+
+    public static let mainContextForcedUpdate = Notification.Name("__MainContextForcedUpdate")
+}
 
 extension ModelContext {
     public func updates<T: PersistentModel>(
         relevantTo fetchDescriptorType: FetchDescriptor<T>.Type
     ) -> AsyncStream<Void> {
         return AsyncStream<Void> { continuation in
-            let publisher = {
+            let forcedUpdatePublisher = NotificationCenter.default.publisher(
+                for: ModelContainer.mainContextForcedUpdate,
+                object: self.container
+            ).receive(on: DispatchQueue.main)
+            let updatesPublisher = {
                 // willSave only started working in iOS 18
                 if #available(iOS 18, *) {
                     NotificationCenter.default.publisher(for: ModelContext.willSave, object: self)
@@ -36,9 +48,12 @@ extension ModelContext {
                     NotificationCenter.default.publisher(for: Notification.Name("NSObjectsChangedInManagingContextNotification"), object: self)
                 }
             }()
-            let cancellable = publisher.sink { _ in
+            let cancellable = updatesPublisher.merge(with: forcedUpdatePublisher).sink { _ in
                 continuation.finish()
-            } receiveValue: { notification in
+            } receiveValue: { (notification) in
+                if notification.name == ModelContainer.mainContextForcedUpdate {
+                    continuation.yield()
+                }
                 guard let modelContext = notification.object as? ModelContext else {
                     return
                 }
@@ -54,7 +69,7 @@ extension ModelContext {
                     continuation.yield()
                 }
             }
-            continuation.onTermination = { continuation in
+            continuation.onTermination = { _ in
                 cancellable.cancel()
             }
         }

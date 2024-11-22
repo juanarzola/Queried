@@ -8,6 +8,13 @@ It uses an internal `SwiftData` notification that the `@Query` macro uses to upd
 
 Example (from [QueriedSample](https://github.com/juanarzola/QueriedSample)):
 
+## Observing from background ModelContext
+
+Because Queried relies on a container's mainContext updating, it won't automatically update
+when another ModelContext updates the container. To work around this, manuall call 
+`ModelContainer.postForcedMainContextUpdate` to update all @Queried queries 
+after other ModelContexts finish their writes.
+
 ```swift
 import SwiftUI
 import SwiftData
