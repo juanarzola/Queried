@@ -19,8 +19,8 @@ let package = Package(
         ),
     ],
     dependencies: [
-        .package(url: "https://github.com/apple/swift-syntax.git", from: "509.0.0"),
-        .package(url: "https://github.com/pointfreeco/swift-macro-testing.git", from: "0.4.1"),
+        .package(url: "https://github.com/apple/swift-syntax.git", "600.0.0"..<"699.99.99"),
+        .package(url: "https://github.com/pointfreeco/swift-macro-testing.git", branch: "main")
     ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
